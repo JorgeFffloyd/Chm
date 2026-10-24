@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+
+using namespace std;
+
+int main() {
+    ifstream fin("input.txt");
+    ofstream fout("output.txt");
+
+    if (!fin.is_open()) {
+        cout << "Ошибка: не найден файл input.txt" << endl;
+        return 1;
+    }
+
+    int n;
+    fin >> n; // Чтение размерности из файла
+
+    vector<vector<double>> A(n, vector<double>(n));
+    vector<vector<double>> L(n, vector<double>(n, 0.0));
+    vector<vector<double>> U(n, vector<double>(n, 0.0));
+
+    // Чтение матрицы A из файла
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            fin >> A[i][j];
+        }
+    }
+
+    // --- LU-разложение ---
+    for (int i = 0; i < n; i++) {
+        // Вычисление строки матрицы U
+        for (int j = i; j < n; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < i; k++) {
+                sum += L[i][k] * U[k][j];
+            }
+            U[i][j] = A[i][j] - sum;
+        }
+
+        // Вычисление столбца матрицы L
+        L[i][i] = 1.0;
+        for (int j = i + 1; j < n; j++) {
+            double sum = 0.0;
+            for (int k = 0; k < i; k++) {
+                sum += L[j][k] * U[k][i];
+            }
+            L[j][i] = (A[j][i] - sum) / U[i][i];
+        }
+    }
+
+    // --- Запись результатов в файл ---
+    fout << "Матрица L:" << endl;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) fout << L[i][j] << "\t";
+        fout << endl;
+    }
+
+    fout << "\nМатрица U:" << endl;
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) fout << U[i][j] << "\t";
+        fout << endl;
+    }
+
+    fin.close();
+    fout.close();
+
+    cout << "Результат записан в output.txt" << endl;
+    return 0;
+}
